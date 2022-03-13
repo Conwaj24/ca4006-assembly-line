@@ -10,18 +10,33 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+class Logger {
+    PrintStream file;
+    PrintStream cmd;
+
+    Logger() {
+        File f = new File ("./output.dat");
+        try {f.createNewFile();}
+        catch (IOException e) {}
+        try {this.file = new PrintStream(f);}
+        catch (FileNotFoundException e) {}
+        this.cmd = System.out;
+    }
+
+    public void log(String message) {
+        System.setOut(this.file);
+        System.out.println(message);
+        System.setOut(this.cmd);
+        System.out.println(message);
+    }
+}
 public class Assignment1 {
-    // Configuration of the "Car Painting Process Automation" simulator
-    // Keeping these here so all settings are in 1 place.
+    static Random seededRNG = new Random(0);
+    Logger logger = new Logger();
 
-    // Controls ordering loop
-    AtomicBoolean continueOrders;
-
-    // Defining length of a tic
-    Integer tic_in_milli;
-
-    // Program execution length in tics
-    Integer execution_tics;
+    AtomicBoolean continueOrders = new AtomicBoolean(true); // Controls ordering loop
+    Integer millisecondsPerTic = 5;
+    Integer programDuration = 250;
 
     // How frequently dealership makes an order
     Integer unpainted_arrival_tics;
@@ -39,17 +54,9 @@ public class Assignment1 {
     // Time to sleep between dealership placing orders
     Integer dealershipSleep;
 
-    // Output to file
-    PrintStream file;
-
-    // Output to commandline
-    PrintStream cmd;
 
     Assignment1()
     {
-        this.continueOrders = new AtomicBoolean(true);
-        this.tic_in_milli = 600;
-        this.execution_tics = 2500;
         this.unpainted_arrival_tics = 20;
         this.warehouse_capacity = 30;
         this.car_models =
@@ -61,14 +68,8 @@ public class Assignment1 {
                         Arrays.asList("grey", "black", "white", "beige", "blue", "red", "green")
                 );
         this.uidCount = new AtomicInteger(0);
-        this.dealershipSleep = tic_in_milli;
+        this.dealershipSleep = millisecondsPerTic;
 
-        File f = new File ("./output.dat");
-        try {f.createNewFile();}
-        catch (IOException e) {}
-        try {this.file = new PrintStream(f);}
-        catch (FileNotFoundException e) {}
-        this.cmd = System.out;
     }
     public static void main(String args[]) {
         // Initialisation, main code here
@@ -115,7 +116,7 @@ public class Assignment1 {
                 timer.cancel();
             }
         };
-        timer.schedule(task, assignment1.tic_in_milli * assignment1.execution_tics);
+        timer.schedule(task, assignment1.millisecondsPerTic * assignment1.programDuration);
 
         // Dealership ordering vehicles starts here
         Dealership dealership = new Dealership(assignment1, warehouse);
@@ -170,7 +171,7 @@ class Warehouse {
         // Model/Colour are randomised here, but if you wanted to, could have randomisation/selection done in (...)
         // (...) the dealership too. It's functionally equivalent, leads to the same result, it's just easier to (...)
         // (...) work with it this way because of the way I initially planned out these classes.
-        Random rng = new Random();
+        Random rng = Assignment1.seededRNG;
         String random_model = car_models.get(rng.nextInt(car_models.size()));
         String random_colour = colours.get(rng.nextInt(colours.size()));
         Integer uid = uidCount.incrementAndGet();
@@ -182,10 +183,7 @@ class Warehouse {
 
             // Redirecting output so logs go out to console as well as the file.
             String outp = ("Received order for vehicle model " + vehicle.model + ", colour " + vehicle.colour + " at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS) + " => There are " + current_stock.get(vehicle.model).get() + " of this model left in stock.");
-            System.setOut(assignment1.file);
-            System.out.println(outp);
-            System.setOut(assignment1.cmd);
-            System.out.println(outp);
+            assignment1.logger.log(outp);
 
             synchronized (placed_orders)
             { placed_orders.add(vehicle);
@@ -199,10 +197,7 @@ class Warehouse {
             carrier_trailer.notify(); }
 
             String outp = ("Car carrier trailer departed at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS) + ".");
-            System.setOut(assignment1.file);
-            System.out.println(outp);
-            System.setOut(assignment1.cmd);
-            System.out.println(outp);
+            assignment1.logger.log(outp);
         }
     }
     public synchronized void  addToWarehouse() {
@@ -214,10 +209,7 @@ class Warehouse {
             currentStock.incrementAndGet();
 
             String outp = ("A model " + random_model + " vehicle is added to the warehouse at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS) + " => " + currentStock +  " vehicles of model " + random_model + " remaining.");
-            System.setOut(assignment1.file);
-            System.out.println(outp);
-            System.setOut(assignment1.cmd);
-            System.out.println(outp);
+            assignment1.logger.log(outp);
         }
     }
 
@@ -263,10 +255,7 @@ class Robot implements Runnable {
     public void run() {
         Vehicle currentVehicle;
         String outp = ("Robot " + role + " started.");
-        System.setOut(assignment1.file);
-        System.out.println(outp);
-        System.setOut(assignment1.cmd);
-        System.out.println(outp);
+        assignment1.logger.log(outp);
 
         while ((continueOrders.get()) | (waiting_vehicles.size() != 0))
         {
@@ -286,21 +275,15 @@ class Robot implements Runnable {
             currentVehicle = waiting_vehicles.remove();
 
             outp = ("- Thread - " + Thread.currentThread().getId() + ": " + "The " + role + " robot is now working on order " + currentVehicle.uid + " at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
-            System.setOut(assignment1.file);
-            System.out.println(outp);
-            System.setOut(assignment1.cmd);
-            System.out.println(outp);
+            assignment1.logger.log(outp);
 
-            try { Thread.sleep(assignment1.tic_in_milli * job_length_tics); }
+            try { Thread.sleep(assignment1.millisecondsPerTic * job_length_tics); }
             catch (InterruptedException e) {}
 
             // Once work is completed, move the car to the next queue.
             currentVehicle.status = role;
             outp = ("- Thread - " + Thread.currentThread().getId() + ": " + role + " is done with vehicle " + currentVehicle.uid + ". moving to next stage: " + sendsTo + ".");
-            System.setOut(assignment1.file);
-            System.out.println(outp);
-            System.setOut(assignment1.cmd);
-            System.out.println(outp);
+            assignment1.logger.log(outp);
 
             // Car moving
             try {Thread.sleep(100);}
@@ -324,7 +307,7 @@ class Dealership implements Runnable{
     }
     @Override
     public void run() {
-        Random rng = new Random();
+        Random rng = Assignment1.seededRNG;
         // Flag for continue orders is set to false when specified number of tics pass
         while (continueOrders.get()){
             // 1 in 10 chance that an order is placed
