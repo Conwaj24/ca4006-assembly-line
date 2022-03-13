@@ -39,9 +39,7 @@ public class Assignment1 {
     AtomicBoolean continueOrders = new AtomicBoolean(true); // Controls ordering loop
     Integer millisecondsPerTic = 5;
     Integer programDuration = 250;
-
-    // How frequently dealership makes an order
-    Integer unpainted_arrival_tics;
+    Integer orderInterval = 20;
 
     // Maximum capacity per car model
     Integer warehouse_capacity;
@@ -59,7 +57,6 @@ public class Assignment1 {
 
     Assignment1()
     {
-        this.unpainted_arrival_tics = 20;
         this.warehouse_capacity = 30;
         this.car_models =
                 new ArrayList<String>(
@@ -157,7 +154,7 @@ class Warehouse {
     Warehouse(Queue<Vehicle> first_robot_queue,
               Queue<Vehicle> trailer,
               Assignment1 assignment1) {
-        this.arrival_tics = assignment1.unpainted_arrival_tics;
+        this.arrival_tics = assignment1.orderInterval;
         this.current_stock = new Hashtable<String, AtomicInteger>();
         assignment1.car_models.forEach(car -> current_stock.put(car, new AtomicInteger(5)));
 
