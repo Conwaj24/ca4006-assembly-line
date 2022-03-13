@@ -10,6 +10,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+class ThreadCounter {
+    static AtomicInteger i = new AtomicInteger(0);
+    public static int getID() {
+        return i.incrementAndGet();
+    }
+    public static void release() {
+        if (i.decrementAndGet() == 0)
+            System.exit(0);
+    }
+}
+
 class Logger {
     PrintStream file;
     PrintStream cmd;
@@ -32,6 +43,19 @@ class Logger {
         System.out.println(s);
     }
 }
+
+class ThreadRunner implements Runnable {
+    int threadNumber;
+
+    ThreadRunner() {
+        this.threadNumber = ThreadCounter.getID();
+    }
+    @Override
+    public void run() {
+         ThreadCounter.release();
+    }
+
+}
 public class Assignment1 {
     static long randomSeed = 0;
     Logger logger = new Logger();
@@ -53,7 +77,6 @@ public class Assignment1 {
 
     // Time to sleep between dealership placing orders
     Integer dealershipSleep;
-
 
     Assignment1()
     {
@@ -224,7 +247,7 @@ class Warehouse {
 //    }
 }
 
-class Robot implements Runnable {
+class Robot extends ThreadRunner {
     // Role example: Washing
     String role;
     // Status example: Active
@@ -239,6 +262,7 @@ class Robot implements Runnable {
     Queue<Vehicle> nextStation;
 
     Robot(String role, String destination, Integer job_length_tics, Assignment1 assignment1, Queue<Vehicle> nextStation) {
+        super();
         this.role = role;
         this.status = "Ready";
         this.sendsTo = destination;
@@ -250,7 +274,6 @@ class Robot implements Runnable {
         this.nextStation = nextStation;
     }
 
-    @Override
     public void run() {
         Vehicle currentVehicle;
         String outp = ("Robot " + role + " started.");
@@ -273,7 +296,7 @@ class Robot implements Runnable {
             // Spend some time working on the car, using configured tic length from main class, called 'assignment1'
             currentVehicle = waiting_vehicles.remove();
 
-            outp = ("- Thread - " + Thread.currentThread().getId() + ": " + "The " + role + " robot is now working on order " + currentVehicle.uid);
+            outp = ("- Thread - " + this.threadNumber + ": " + "The " + role + " robot is now working on order " + currentVehicle.uid);
             assignment1.logger.log(outp);
 
             try { Thread.sleep(assignment1.millisecondsPerTic * job_length_tics); }
@@ -281,7 +304,7 @@ class Robot implements Runnable {
 
             // Once work is completed, move the car to the next queue.
             currentVehicle.status = role;
-            outp = ("- Thread - " + Thread.currentThread().getId() + ": " + role + " is done with vehicle " + currentVehicle.uid + ". moving to next stage: " + sendsTo + ".");
+            outp = ("- Thread - " + this.threadNumber + ": " + role + " is done with vehicle " + currentVehicle.uid + ". moving to next stage: " + sendsTo + ".");
             assignment1.logger.log(outp);
 
             // Car moving
@@ -293,18 +316,20 @@ class Robot implements Runnable {
                 nextStation.notify();
             }
         }
+        super.run();
     }
 }
-class Dealership implements Runnable{
+class Dealership extends ThreadRunner{
     AtomicBoolean continueOrders;
     Warehouse warehouse;
     Assignment1 assignment1;
     public Dealership(Assignment1 assignment1, Warehouse warehouse) {
+        super();
         this.continueOrders = assignment1.continueOrders;
         this.warehouse = warehouse;
         this.assignment1 = assignment1;
     }
-    @Override
+
     public void run() {
         Random rng = new Random(Assignment1.randomSeed);
         // Flag for continue orders is set to false when specified number of tics pass
@@ -326,5 +351,6 @@ class Dealership implements Runnable{
                 warehouse.addToWarehouse();
             }
         }
+        super.run();
     }
 }
