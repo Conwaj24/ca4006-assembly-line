@@ -24,10 +24,11 @@ class Logger {
     }
 
     public void log(String message) {
+        String s = String.format("[%s] %s", LocalTime.now().truncatedTo(ChronoUnit.SECONDS), message);
         System.setOut(this.file);
-        System.out.println(message);
+        System.out.println(s);
         System.setOut(this.cmd);
-        System.out.println(message);
+        System.out.println(s);
     }
 }
 public class Assignment1 {
@@ -182,7 +183,7 @@ class Warehouse {
             current_stock.get(vehicle.model).decrementAndGet();
 
             // Redirecting output so logs go out to console as well as the file.
-            String outp = ("Received order for vehicle model " + vehicle.model + ", colour " + vehicle.colour + " at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS) + " => There are " + current_stock.get(vehicle.model).get() + " of this model left in stock.");
+            String outp = ("Received order for vehicle model " + vehicle.model + ", colour " + vehicle.colour + " => There are " + current_stock.get(vehicle.model).get() + " of this model left in stock.");
             assignment1.logger.log(outp);
 
             synchronized (placed_orders)
@@ -196,7 +197,7 @@ class Warehouse {
             { carrier_trailer.clear();
             carrier_trailer.notify(); }
 
-            String outp = ("Car carrier trailer departed at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS) + ".");
+            String outp = ("Car carrier trailer departed.");
             assignment1.logger.log(outp);
         }
     }
@@ -208,7 +209,7 @@ class Warehouse {
         {
             currentStock.incrementAndGet();
 
-            String outp = ("A model " + random_model + " vehicle is added to the warehouse at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS) + " => " + currentStock +  " vehicles of model " + random_model + " remaining.");
+            String outp = ("A model " + random_model + " vehicle is added to the warehouse => " + currentStock +  " vehicles of model " + random_model + " remaining.");
             assignment1.logger.log(outp);
         }
     }
@@ -274,7 +275,7 @@ class Robot implements Runnable {
             // Spend some time working on the car, using configured tic length from main class, called 'assignment1'
             currentVehicle = waiting_vehicles.remove();
 
-            outp = ("- Thread - " + Thread.currentThread().getId() + ": " + "The " + role + " robot is now working on order " + currentVehicle.uid + " at time " + LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
+            outp = ("- Thread - " + Thread.currentThread().getId() + ": " + "The " + role + " robot is now working on order " + currentVehicle.uid);
             assignment1.logger.log(outp);
 
             try { Thread.sleep(assignment1.millisecondsPerTic * job_length_tics); }
