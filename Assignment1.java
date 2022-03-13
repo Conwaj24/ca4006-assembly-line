@@ -94,6 +94,7 @@ public class Assignment1 {
 
     }
     public static void main(String args[]) {
+        ThreadCounter.getID();
         // Initialisation, main code here
         Assignment1 assignment1 = new Assignment1();
         Queue<Vehicle> carrier_trailer = new LinkedList<Vehicle>();
@@ -143,7 +144,7 @@ public class Assignment1 {
         // Dealership ordering vehicles starts here
         Dealership dealership = new Dealership(assignment1, warehouse);
         workerExecutor.execute(dealership);
-
+        ThreadCounter.release();
     }
 
 }
