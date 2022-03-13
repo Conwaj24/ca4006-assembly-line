@@ -1,6 +1,6 @@
 TITLE = Assignment1
 
-#${TITLE}.class
+main: output.dat
 
 %.class: %.java
 	javac -d . $<
@@ -8,7 +8,13 @@ TITLE = Assignment1
 clean:
 	-rm -fr *.class *.dat
 
-test: ${TITLE}.class
+output.dat: ${TITLE}.class
 	java ${TITLE} $<
 
-.PHONY: clean test
+testcase: output.dat
+	sort $< > $@
+
+test: output.dat
+	sort $< | diff testcase /dev/stdin
+
+.PHONY: main clean test
