@@ -24,7 +24,8 @@ class Logger {
     }
 
     public void log(String message) {
-        String s = String.format("[%s] %s", LocalTime.now().truncatedTo(ChronoUnit.SECONDS), message);
+        //String s = String.format("[%s] %s", LocalTime.now().truncatedTo(ChronoUnit.SECONDS), message);
+        String s = message;
         System.setOut(this.file);
         System.out.println(s);
         System.setOut(this.cmd);
@@ -32,7 +33,7 @@ class Logger {
     }
 }
 public class Assignment1 {
-    static Random seededRNG = new Random(0);
+    static long randomSeed = 0;
     Logger logger = new Logger();
 
     AtomicBoolean continueOrders = new AtomicBoolean(true); // Controls ordering loop
@@ -172,7 +173,7 @@ class Warehouse {
         // Model/Colour are randomised here, but if you wanted to, could have randomisation/selection done in (...)
         // (...) the dealership too. It's functionally equivalent, leads to the same result, it's just easier to (...)
         // (...) work with it this way because of the way I initially planned out these classes.
-        Random rng = Assignment1.seededRNG;
+        Random rng = new Random(Assignment1.randomSeed);
         String random_model = car_models.get(rng.nextInt(car_models.size()));
         String random_colour = colours.get(rng.nextInt(colours.size()));
         Integer uid = uidCount.incrementAndGet();
@@ -202,7 +203,7 @@ class Warehouse {
         }
     }
     public synchronized void  addToWarehouse() {
-        Random rng = new Random();
+        Random rng = new Random(Assignment1.randomSeed);
         String random_model = car_models.get(rng.nextInt(car_models.size()));
         AtomicInteger currentStock = current_stock.get(random_model);
         if ( currentStock.get() < limit_per_model)
@@ -308,7 +309,7 @@ class Dealership implements Runnable{
     }
     @Override
     public void run() {
-        Random rng = Assignment1.seededRNG;
+        Random rng = new Random(Assignment1.randomSeed);
         // Flag for continue orders is set to false when specified number of tics pass
         while (continueOrders.get()){
             // 1 in 10 chance that an order is placed
