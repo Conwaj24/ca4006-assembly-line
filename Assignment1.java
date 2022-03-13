@@ -7,10 +7,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class ThreadCounter {
+class OrderCounter {
     static AtomicInteger i = new AtomicInteger(0);
     public static int getID() {
         return i.incrementAndGet();
@@ -44,18 +45,22 @@ class Logger {
     }
 }
 
-class ThreadRunner implements Runnable {
-    int threadNumber;
-
-    ThreadRunner() {
-        this.threadNumber = ThreadCounter.getID();
+class Station extends LinkedBlockingQueue<Vehicle> implements Runnable {
+    private void doWork(Vehicle v) {
     }
+
     @Override
     public void run() {
-         ThreadCounter.release();
+        while (true)
+        {
+            try {
+                doWork(take());
+            }
+            catch(InterruptedException e) {}
+        }
     }
-
 }
+
 public class Assignment1 {
     static long randomSeed = 0;
     Logger logger = new Logger();
@@ -63,7 +68,7 @@ public class Assignment1 {
     AtomicBoolean continueOrders = new AtomicBoolean(true); // Controls ordering loop
     Integer millisecondsPerTic = 5;
     Integer programDuration = 250;
-    Integer orderInterval = 20;
+    Integer orderInterval = 10;
 
     // Maximum capacity per car model
     Integer warehouse_capacity;
@@ -71,12 +76,6 @@ public class Assignment1 {
     // Defining car models and colours
     List<String> car_models;
     List<String> colours;
-
-    // Counter to ensure unique identifier for new vehicles
-    AtomicInteger uidCount;
-
-    // Time to sleep between dealership placing orders
-    Integer dealershipSleep;
 
     Assignment1()
     {
@@ -89,12 +88,8 @@ public class Assignment1 {
                 new ArrayList<String>(
                         Arrays.asList("grey", "black", "white", "beige", "blue", "red", "green")
                 );
-        this.uidCount = new AtomicInteger(0);
-        this.dealershipSleep = millisecondsPerTic;
-
     }
     public static void main(String args[]) {
-        ThreadCounter.getID();
         // Initialisation, main code here
         Assignment1 assignment1 = new Assignment1();
         Queue<Vehicle> carrier_trailer = new LinkedList<Vehicle>();
@@ -144,7 +139,6 @@ public class Assignment1 {
         // Dealership ordering vehicles starts here
         Dealership dealership = new Dealership(assignment1, warehouse);
         workerExecutor.execute(dealership);
-        ThreadCounter.release();
     }
 
 }
@@ -166,7 +160,6 @@ class Vehicle {
 
 class Warehouse {
     // tics between new cars arriving
-    Integer arrival_tics;
     Dictionary<String, AtomicInteger> current_stock;
     Integer limit_per_model;
     private Queue<Vehicle> placed_orders;
@@ -178,7 +171,6 @@ class Warehouse {
     Warehouse(Queue<Vehicle> first_robot_queue,
               Queue<Vehicle> trailer,
               Assignment1 assignment1) {
-        this.arrival_tics = assignment1.orderInterval;
         this.current_stock = new Hashtable<String, AtomicInteger>();
         assignment1.car_models.forEach(car -> current_stock.put(car, new AtomicInteger(5)));
 
@@ -190,16 +182,15 @@ class Warehouse {
         this.assignment1 = assignment1;
     }
 
-    public synchronized void placeOrder(List<String> car_models, List<String> colours, AtomicInteger uidCount){
+    public synchronized void placeOrder(List<String> car_models, List<String> colours){
         // Model/Colour are randomised here, but if you wanted to, could have randomisation/selection done in (...)
         // (...) the dealership too. It's functionally equivalent, leads to the same result, it's just easier to (...)
         // (...) work with it this way because of the way I initially planned out these classes.
         Random rng = new Random(Assignment1.randomSeed);
         String random_model = car_models.get(rng.nextInt(car_models.size()));
         String random_colour = colours.get(rng.nextInt(colours.size()));
-        Integer uid = uidCount.incrementAndGet();
 
-        Vehicle vehicle = new Vehicle(random_model, random_colour, uid);
+        Vehicle vehicle = new Vehicle(random_model, random_colour, OrderCounter.getID());
         // Checking stock in warehouse.
         if (current_stock.get(vehicle.model).get() > 0) {
             current_stock.get(vehicle.model).decrementAndGet();
@@ -248,7 +239,7 @@ class Warehouse {
 //    }
 }
 
-class Robot extends ThreadRunner {
+class Robot implements Runnable {
     // Role example: Washing
     String role;
     // Status example: Active
@@ -275,27 +266,15 @@ class Robot extends ThreadRunner {
         this.nextStation = nextStation;
     }
 
+    @Override
     public void run() {
         Vehicle currentVehicle;
         String outp = ("Robot " + role + " started.");
         assignment1.logger.log(outp);
 
-        while ((continueOrders.get()) | (waiting_vehicles.size() != 0))
+        while (true)
         {
-            // Sleep to prevent polling continueOrders too often
-            try {Thread.sleep(500);}
-            catch (InterruptedException e) {}
-
-            // Wait if there's nothing in the queue, will continue once it's notified.
-            if (waiting_vehicles.size() == 0) {
-                // Wait on waiting vehicles until notified of a new vehicle being added
-                try {
-                    synchronized (waiting_vehicles) { waiting_vehicles.wait(); } }
-                catch (InterruptedException e) {}
-            }
-
-            // Spend some time working on the car, using configured tic length from main class, called 'assignment1'
-            currentVehicle = waiting_vehicles.remove();
+            currentVehicle = waiting_vehicles.take();
 
             outp = ("- Thread - " + this.threadNumber + ": " + "The " + role + " robot is now working on order " + currentVehicle.uid);
             assignment1.logger.log(outp);
@@ -317,10 +296,9 @@ class Robot extends ThreadRunner {
                 nextStation.notify();
             }
         }
-        super.run();
     }
 }
-class Dealership extends ThreadRunner{
+class Dealership implements Runnable{
     AtomicBoolean continueOrders;
     Warehouse warehouse;
     Assignment1 assignment1;
@@ -331,19 +309,20 @@ class Dealership extends ThreadRunner{
         this.assignment1 = assignment1;
     }
 
+    @Override
     public void run() {
         Random rng = new Random(Assignment1.randomSeed);
         // Flag for continue orders is set to false when specified number of tics pass
         while (continueOrders.get()){
             // 1 in 10 chance that an order is placed
-            if (rng.nextInt(11) + 1 == 5) {
-                warehouse.placeOrder(assignment1.car_models, assignment1.colours, assignment1.uidCount);
+            if (rng.nextInt(assignment1.orderInterval) == 0) {
+                warehouse.placeOrder(assignment1.car_models, assignment1.colours);
 
                 // Dealership calls the warehouse, asking if the carrier trailer is full yet.
                 warehouse.checkCarrierTrailer();
             }
             // Dealership delay between orders
-            try { Thread.sleep(assignment1.dealershipSleep); }
+            try { Thread.sleep(assignment1.millisecondsPerTic); }
             catch (InterruptedException e) {}
 
             // Dealership calls supplier, asks if more vehicles are ready to be delivered to the warehouse.
@@ -352,6 +331,5 @@ class Dealership extends ThreadRunner{
                 warehouse.addToWarehouse();
             }
         }
-        super.run();
     }
 }

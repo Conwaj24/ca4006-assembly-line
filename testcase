@@ -1,0 +1,111 @@
+A model 3 vehicle is added to the warehouse => 4 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 4 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 4 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 4 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 4 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 4 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 5 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 5 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 5 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 5 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 6 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 7 vehicles of model 3 remaining.
+A model 3 vehicle is added to the warehouse => 8 vehicles of model 3 remaining.
+Received order for vehicle model 3, colour white => There are 3 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 3 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 3 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 3 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 3 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 3 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 3 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 4 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 4 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 4 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 4 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 4 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 5 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 6 of this model left in stock.
+Received order for vehicle model 3, colour white => There are 7 of this model left in stock.
+Robot Electrodipper started.
+Robot Painter started.
+Robot Primer started.
+Robot Sander started.
+Robot Washer started.
+- Thread - 2: Painter is done with vehicle 1. moving to next stage: Trailer.
+- Thread - 2: The Painter robot is now working on order 1
+- Thread - 3: Electrodipper is done with vehicle 1. moving to next stage: Painting.
+- Thread - 3: The Electrodipper robot is now working on order 1
+- Thread - 4: Primer is done with vehicle 1. moving to next stage: Electrodipping.
+- Thread - 4: Primer is done with vehicle 2. moving to next stage: Electrodipping.
+- Thread - 4: The Primer robot is now working on order 1
+- Thread - 4: The Primer robot is now working on order 2
+- Thread - 5: The Washer robot is now working on order 1
+- Thread - 5: The Washer robot is now working on order 2
+- Thread - 5: Washer is done with vehicle 1. moving to next stage: Priming.
+- Thread - 5: Washer is done with vehicle 2. moving to next stage: Priming.
+- Thread - 6: Sander is done with vehicle 10. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 11. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 12. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 13. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 14. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 15. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 16. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 17. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 18. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 19. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 1. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 20. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 21. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 22. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 23. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 24. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 2. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 3. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 4. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 5. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 6. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 7. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 8. moving to next stage: Washing.
+- Thread - 6: Sander is done with vehicle 9. moving to next stage: Washing.
+- Thread - 6: The Sander robot is now working on order 1
+- Thread - 6: The Sander robot is now working on order 10
+- Thread - 6: The Sander robot is now working on order 11
+- Thread - 6: The Sander robot is now working on order 12
+- Thread - 6: The Sander robot is now working on order 13
+- Thread - 6: The Sander robot is now working on order 14
+- Thread - 6: The Sander robot is now working on order 15
+- Thread - 6: The Sander robot is now working on order 16
+- Thread - 6: The Sander robot is now working on order 17
+- Thread - 6: The Sander robot is now working on order 18
+- Thread - 6: The Sander robot is now working on order 19
+- Thread - 6: The Sander robot is now working on order 2
+- Thread - 6: The Sander robot is now working on order 20
+- Thread - 6: The Sander robot is now working on order 21
+- Thread - 6: The Sander robot is now working on order 22
+- Thread - 6: The Sander robot is now working on order 23
+- Thread - 6: The Sander robot is now working on order 24
+- Thread - 6: The Sander robot is now working on order 3
+- Thread - 6: The Sander robot is now working on order 4
+- Thread - 6: The Sander robot is now working on order 5
+- Thread - 6: The Sander robot is now working on order 6
+- Thread - 6: The Sander robot is now working on order 7
+- Thread - 6: The Sander robot is now working on order 8
+- Thread - 6: The Sander robot is now working on order 9
