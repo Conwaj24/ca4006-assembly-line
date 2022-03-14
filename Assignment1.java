@@ -1,7 +1,3 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -24,29 +20,12 @@ class OrderCounter {
     public static void release() {
         if (active.decrementAndGet() == 0)
             System.exit(0);
-        Assignment1.logger.log(active.get() + " orders active");
     }
 }
 
 class Logger {
-    PrintStream file;
-    PrintStream cmd;
-
-    Logger() {
-        File f = new File ("./output.dat");
-        try {f.createNewFile();}
-        catch (IOException e) {}
-        try {this.file = new PrintStream(f);}
-        catch (FileNotFoundException e) {}
-        this.cmd = System.out;
-    }
-
-    public void log(String message) {
-        //String s = String.format("[%s] %s", LocalTime.now().truncatedTo(ChronoUnit.SECONDS), message);
-        String s = message;
-        System.setOut(this.file);
-        System.out.println(s);
-        System.setOut(this.cmd);
+    public static void log(String message) {
+        String s = String.format("[%s] %s", LocalTime.now().truncatedTo(ChronoUnit.SECONDS), message);
         System.out.println(s);
     }
 
@@ -69,7 +48,7 @@ class Station extends LinkedBlockingQueue<Vehicle> implements Runnable {
     }
 
     void log(String message) {
-        Assignment1.logger.log(message);
+        Logger.log(message);
     }
 
     @Override
@@ -104,17 +83,13 @@ public class Assignment1 {
     static int millisecondsPerTic = 5;
     static int programDuration = 250;
     Integer orderInterval = 10;
+    Integer warehouse_capacity = 30;
 
-    // Maximum capacity per car model
-    Integer warehouse_capacity;
-
-    // Defining car models and colours
     List<String> car_models;
     List<String> colours;
 
     Assignment1()
     {
-        this.warehouse_capacity = 30;
         this.car_models =
                 new ArrayList<String>(
                         Arrays.asList("3", "S", "Y", "X", "Roadster")
@@ -127,27 +102,15 @@ public class Assignment1 {
     public static void main(String args[]) {
         // Initialisation, main code here
         Assignment1 assignment1 = new Assignment1();
-        var carrier_trailer = new Carrier();
 
-        // Create Robots for production line
         var robots = new ArrayList<Station>();
-        robots.add(carrier_trailer);
 
-        // 5
-        Robot painter = new Robot("Painter", 20, carrier_trailer);
-        robots.add(painter);
-        // 4
-        Robot electrodipper = new Robot("Electrodipper", 40, painter);
-        robots.add(electrodipper);
-        // 3
-        Robot primer = new Robot("Primer", 30, electrodipper);
-        robots.add(primer);
-        // 2
-        Robot washer = new Robot("Washer", 10, primer);
-        robots.add(washer);
-        // 1
-        Robot sander = new Robot("Sander", 5, washer);
-        robots.add(sander);
+        robots.add(new Carrier());
+        robots.add(new Robot("Painter", 20, robots.get(robots.size() -1)));
+        robots.add(new Robot("Electrodipper", 40, robots.get(robots.size() -1)));
+        robots.add(new Robot("Primer", 30, robots.get(robots.size() -1)));
+        robots.add(new Robot("Washer", 10, robots.get(robots.size() -1)));
+        robots.add(new Robot("Sander", 5, robots.get(robots.size() -1)));
 
         ExecutorService workerExecutor = Executors.newFixedThreadPool(16);
         robots.forEach(robot -> workerExecutor.execute(robot));
@@ -155,8 +118,8 @@ public class Assignment1 {
         // Creating a warehouse object, this handles various functionality related to accepting orders (...)
         // (...) from the dealership, as well as passing cars to/from robots on the production line.
         Warehouse warehouse = new Warehouse(
-                sander,
-                carrier_trailer,
+                robots.get(robots.size() -1),
+                robots.get(0),
                 assignment1);
 
         // Timer task to stop ordering of vehicles
@@ -180,13 +143,11 @@ public class Assignment1 {
 
 class Vehicle {
     Integer uid;
-    Integer price;
     String model;
     String colour;
     String status;
     Vehicle(String model, String colour, Integer uid) {
         this.uid = uid;
-        this.price = 20000;
         this.model = model;
         this.colour = colour;
         this.status = "Unpainted";
@@ -225,8 +186,7 @@ class Warehouse {
         if (current_stock.get(vehicle.model).get() > 0) {
             current_stock.get(vehicle.model).decrementAndGet();
 
-            String outp = ("Received order for vehicle model " + vehicle.model + ", colour " + vehicle.colour + " => There are " + current_stock.get(vehicle.model).get() + " of this model left in stock.");
-            Assignment1.logger.log(outp);
+            Logger.log("Received order for vehicle model " + vehicle.model + ", colour " + vehicle.colour + " => There are " + current_stock.get(vehicle.model).get() + " of this model left in stock.");
 
             try {
                 placed_orders.put(vehicle);
@@ -240,8 +200,7 @@ class Warehouse {
                 carrier_trailer.notify();
             }
 
-            String outp = ("Car carrier trailer departed.");
-            assignment1.logger.log(outp);
+            Logger.log("Car carrier trailer departed.");
         }
     }
     public synchronized void addToWarehouse() {
@@ -252,21 +211,9 @@ class Warehouse {
         {
             currentStock.incrementAndGet();
 
-            String outp = ("A model " + random_model + " vehicle is added to the warehouse => " + currentStock +  " vehicles of model " + random_model + " remaining.");
-            assignment1.logger.log(outp);
+            Logger.log("A model " + random_model + " vehicle is added to the warehouse => " + currentStock +  " vehicles of model " + random_model + " remaining.");
         }
     }
-
-    // If we have time for adding multiple dealerships, we'll need to move order processing from Robot to Warehouse (...)
-    // (...) current solution is safe since only one of the robots currently removes from the queue.
-//    public synchronized Object processOrder() {
-//        while(placed_orders.size() == 0) {
-//            try { this.wait(); }
-//            catch (InterruptedException e) {}
-//
-//        }
-//        return placed_orders.remove();
-//    }
 }
 
 class Robot extends Station {
@@ -300,8 +247,9 @@ class Dealership implements Runnable{
     AtomicBoolean continueOrders;
     Warehouse warehouse;
     Assignment1 assignment1;
+    Random rng;
     public Dealership(Assignment1 assignment1, Warehouse warehouse) {
-        super();
+        rng = new Random(Assignment1.randomSeed);
         this.continueOrders = assignment1.continueOrders;
         this.warehouse = warehouse;
         this.assignment1 = assignment1;
@@ -309,7 +257,6 @@ class Dealership implements Runnable{
 
     @Override
     public void run() {
-        Random rng = new Random(Assignment1.randomSeed);
         // Flag for continue orders is set to false when specified number of tics pass
         while (continueOrders.get()){
             // 1 in 10 chance that an order is placed
@@ -320,7 +267,7 @@ class Dealership implements Runnable{
                 warehouse.checkCarrierTrailer();
             }
             // Dealership delay between orders
-            try { Thread.sleep(assignment1.millisecondsPerTic); }
+            try { Thread.sleep(Assignment1.millisecondsPerTic); }
             catch (InterruptedException e) {}
 
             // Dealership calls supplier, asks if more vehicles are ready to be delivered to the warehouse.
