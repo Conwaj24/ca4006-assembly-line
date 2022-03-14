@@ -9,12 +9,12 @@ clean:
 	-rm -fr *.class *.dat
 
 output.dat: ${TITLE}.class
-	java ${TITLE} $<
+	java ${TITLE} $< | tee $@
 
 testcase: output.dat
-	sort $< > $@
+	awk '{$$1="";print $$0}' $< | sort > $@
 
 test: output.dat
-	sort $< | diff testcase /dev/stdin
+	awk '{$$1="";print $$0}' $< | sort | diff testcase /dev/stdin
 
 .PHONY: main clean test
